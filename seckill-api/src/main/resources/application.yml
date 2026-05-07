@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: seckill-api
+  mvc:
+    servlet:
+      load-on-startup: 1
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/seckill?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&zeroDateTimeBehavior=convertToNull
+    username: root
+    password: 123456
+  redis:
+    database: 5
+    host: 127.0.0.1
+    port: 6379
+    password:  seckill123
+    timeout: 50000
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    content: text/html
+    enabled: true
+    encoding: UTF-8
+    mode: HTML5
+  elasticsearch:
+    host: 127.0.0.1
+    port: 9200
+    username: elastic
+    password: seckill123
+server:
+  port: 8015
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: seckill-group
+    send-message-timeout: 10000
