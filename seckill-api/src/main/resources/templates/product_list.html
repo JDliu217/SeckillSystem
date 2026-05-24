@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>商品列表</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" type="text/css" th:href="@{/element-ui/index.css}" />
+
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      .content-wrap {
+        background-size: 100% 100%;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 40px;
+        padding-top: 20px;
+      }
+      .table-wrap {
+        padding: 20px;
+      }
+      .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .page-wrap {
+        min-height: 100vh;
+        width: 100vw;
+        background-color: #f5f5f5;
+      }
+      .container {
+        width: 1200px;
+        margin: 0 auto;
+      }
+      .product-card {
+        margin-top: 15px;
+        background-color: #fff;
+        padding: 20px;
+        cursor: pointer;
+        height: 260px;
+      }
+      .product-img {
+        width: 230px;
+        object-fit: contain;
+      }
+      .product-name {
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      .product-model {
+        font-size: 12px;
+        margin-top: 10px;
+        color: #666;
+      }
+      .price-row {
+        margin-top: 10px;
+        margin-top: 10px;
+      }
+      .price-row .price {
+        color: #fa5400;
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .price-row .costPrice {
+        color: #999;
+        font-size: 13px;
+        white-space: nowrap;
+        text-decoration: line-through;
+      }
+      .with-hold-quantity {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" th:src="@{/axios/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/vue.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/jsencrypt.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/js.cookie.min.js}"></script>
+    <script type="text/javascript" th:src="@{/element-ui/index.js}"></script>
+    <div id="app">
+      <div>
+        <div class="page-wrap">
+          <div class="container">
+            <h2 class="title">秒杀商品列表</h2>
+            <el-row :gutter="20">
+              <el-col :span="6" v-for="(item, index) in rows" :key="index">
+                <div class="product-card" @click="onDetail(item)">
+                  <img
+                    class="product-img"
+                    :src="item.cover"
+                    min-width="100"
+                    height="100"
+                  />
+                  <div class="product-name">{{item.name}}</div>
+                  <div class="product-model">{{item.model}}</div>
+                  <div class="price-row">
+                    <span class="price">{{item.price}}</span>
+                    <span class="costPrice">{{item.costPrice}}</span>
+                  </div>
+                  <div class="with-hold-quantity">
+                    库存：{{item.withHoldQuantity}}
+                  </div>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+          <div class="pagination">
+            <el-pagination
+              :current-page.sync="page.pageNo"
+              :page-sizes="[10, 20, 50]"
+              :page-size="page.pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="page.total"
+              class="pagination"
+              @size-change="sizeChange"
+              @current-change="pageChange"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          rows: [],
+          page: {
+            total: 0, // 总页数
+            pageNo: 1, // 当前页数
+            pageSize: 10, // 每页显示多少条
+          },
+        };
+      },
+      mounted() {
+        this.getPage(this.page);
+      },
+      methods: {
+        onDetail(row) {
+          window.location.href="/productDetail/"+ row.id;
+        },
+        sizeChange(val) {
+          this.page.pageNo = 1;
+          this.page.pageSize = val;
+          this.getPage(this.page);
+        },
+        pageChange(val) {
+          this.page.pageNo = val;
+          // this.page.pageSize = val
+          this.getPage(this.page);
+        },
+        getPage(page) {
+           axios.post("/searchProductList", page, { headers: this.getHeaders()})
+           .then((res) => {
+              this.rows = res.data.data;
+          }).catch(error => {
+            if (error.response) {
+              const data = error.response.data
+              if(data.code === 403) {
+                window.location.href="/login";
+              } else {
+                this.$message.error(data.message);
+              }
+            } else {
+               this.$message.error(error.message);
+            }
+        });
+        },
+        getHeaders() {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic@' + Cookies.get('SECKILL-TOKEN')
+            }
+            return headers;
+        }
+      },
+    });
+  </script>
+</html>
