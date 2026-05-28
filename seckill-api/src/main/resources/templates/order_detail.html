@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>订单详情</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" type="text/css" th:href="@{/element-ui/index.css}" />
+
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      .page-wrap {
+        min-height: 100vh;
+        width: 100vw;
+      }
+      .content-wrap {
+        margin-left: 40px;
+      }
+      .container {
+        width: 1200px;
+        margin: 0 auto;
+      }
+      .row {
+        display: flex;
+        margin-top: 40px;
+      }
+      .item {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .img-wrap {
+        width: 300px;
+        margin-right: 40px;
+        position: relative;
+      }
+      .img-wrap img {
+        width: 300px;
+        object-fit: contain;
+        width: 300px;
+        height: 300px;
+        margin-bottom: 20px;
+        border: 1px solid #e8e8e8;
+      }
+      .item-label {
+        color: #999;
+        font-size: 13px;
+      }
+      .item-value {
+        font-size: 13px;
+      }
+      .payment-amount {
+        color: #FF0000;
+        font-size: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" th:src="@{/axios/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/vue.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/jsencrypt.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/js.cookie.min.js}"></script>
+    <script type="text/javascript" th:src="@{/element-ui/index.js}"></script>
+    <div id="app">
+      <div class="page-wrap">
+        <div class="container">
+          <div class="row">
+
+            <div class="content-wrap">
+              <div class="item">
+                <img
+                        th:src="${orderDetail.cover}"
+                        width="200"
+                        height="200"
+                />
+              </div>
+              <div class="item">
+                <span class="item-label">商品编号</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.code}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">商品名称</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.productName}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">规格</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.model}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">实付金额</span>
+                <span
+                        class="payment-amount"
+                        th:text="${orderDetail.paymentAmount}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">订单金额</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.totalAmount}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">数量</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.quantity}"
+                ></span>
+              </div>
+
+              <div class="item">
+                <span class="item-label">下单时间</span>
+                <span
+                        class="item-value"
+                        th:text="${#dates.format(orderDetail.orderTime, 'yyyy-MM-dd HH:mm:ss')}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">订单状态</span>
+                <span
+                        class="item-value"
+                        th:text="${orderDetail.orderStatusString}"
+                ></span>
+              </div>
+              <div class="item">
+                <el-button type="primary" native-type="submit" id="buyButton" @click="onPay"
+                >立即支付</el-button
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script th:inline="javascript" type="text/javascript">
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+
+        };
+      },
+      methods: {
+        onPay() {
+
+        }
+      }
+    });
+  </script>
+</html>

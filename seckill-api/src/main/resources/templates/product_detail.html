@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>商品详情</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" type="text/css" th:href="@{/element-ui/index.css}" />
+
+    <style type="text/css">
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      .page-wrap {
+        min-height: 100vh;
+        width: 100vw;
+      }
+      .container {
+        width: 1200px;
+        margin: 0 auto;
+      }
+      .row {
+        display: flex;
+        margin-top: 40px;
+      }
+      .item {
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+      .img-wrap {
+        width: 300px;
+        margin-right: 40px;
+        margin-left: 10px;
+        position: relative;
+      }
+      .img-wrap img {
+        width: 300px;
+        object-fit: contain;
+        width: 300px;
+        height: 300px;
+        margin-bottom: 20px;
+        border: 1px solid #e8e8e8;
+      }
+      .product-name {
+        font-size: 18px;
+        font-weight: 400;
+        line-height: 25px;
+        margin-bottom: 20px;
+      }
+      .item-label {
+        color: #999;
+        font-size: 13px;
+      }
+      .item-value {
+        font-size: 13px;
+      }
+      .detail-value {
+        margin-top: 20px;
+      }
+      .costPrice {
+        color: #999;
+        font-size: 13px;
+        white-space: nowrap;
+        text-decoration: line-through;
+      }
+      .timer {
+        color: #fa5400;
+        margin-right: 5px;
+      }
+      .price {
+        color: #fa5400;
+        white-space: nowrap;
+        font-size: 28px;
+      }
+      .price-wrap {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .ml20 {
+        margin-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" th:src="@{/axios/axios.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/vue.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/jsencrypt.min.js}"></script>
+    <script type="text/javascript" th:src="@{/vue/js.cookie.min.js}"></script>
+    <script type="text/javascript" th:src="@{/element-ui/index.js}"></script>
+    <div id="app">
+      <div class="page-wrap" >
+        <div v-if="!userInfo">
+          <el-alert
+            type="warning"
+            :closable="false"
+            center
+          >
+              <slot name="title">
+                您还没有登录，请<a href="/login">登录</a>后再操作
+              </slot>
+
+          </el-alert>
+        </div>
+        <div class="container">
+          <div  th:if="${productDetail eq null}">
+             详情数据为空!
+          </div>
+          <div class="row" th:if="${productDetail ne null}">
+            <div class="img-wrap">
+              <img
+                th:src="@{${productDetail.cover}}"
+                width="200"
+                height="200"
+              />
+            </div>
+            <div class="content-wrap">
+              <div class="product-name" th:text="${productDetail.name}"></div>
+              <div class="item">
+                <span class="item-label">规格</span>
+                <span
+                        class="item-value"
+                        th:text="${productDetail.model}"
+                ></span>
+              </div>
+              <div class="price-wrap">
+                <div>
+                  <span class="item-label">秒杀价</span>
+                  <span class="price" th:text="${productDetail.price}"></span>
+                </div>
+                <div class="ml20">
+                  <span class="item-label">商品原价</span>
+                  <span
+                    class="costPrice"
+                    th:text="${productDetail.costPrice}"
+                  ></span>
+                </div>
+              </div>
+              <div class="item">
+                <span class="item-label">库存数量</span>
+                <span
+                  class="item-value"
+                  th:text="${productDetail.withHoldQuantity}"
+                ></span>
+              </div>
+              <div class="item">
+                <span class="item-label">验证码</span>
+                <el-input v-model="form.code" auto-complete="off" style="width: 80px;">
+                  <svg-icon slot="prefix" icon-class="validCode" class="el-input__icon input-icon" />
+                </el-input>
+                <span>
+                  <img :src="codeUrl" @click="getCode">
+                </span>
+              </div>
+              <div class="item">
+                <span class="item-label">秒杀开始时间</span>
+                <span
+                        class="item-value"
+                        th:text="${#dates.format(productDetail.startTime, 'yyyy-MM-dd HH:mm:ss')}"
+                ></span>
+              </div>
+              <div>
+                <span class="item-label">
+                  <span th:if="${productDetail.seckillStatus eq 0}">秒杀未开始</span>
+                  <span th:if="${productDetail.seckillStatus eq 1}">
+                     秒杀倒计时：
+                     <span id="remainSecondsShow" v-if="remainSeconds>0" class="timer">{{remainSeconds}}秒</span>
+                  </span>
+                  <span th:if="${productDetail.seckillStatus eq 2}">秒杀进行中</span>
+                  <span th:if="${productDetail.seckillStatus eq 3}">秒杀已结束</span>
+                </span>
+                <span>
+                   <el-button :disabled="!canSeckill" type="primary" native-type="submit" id="buyButton" @click="onSubmit"
+                   >立即秒杀</el-button
+                   >
+                </span>
+
+              </div>
+              <div class="item">
+                <div class="item-label">商品详情</div>
+                <div
+                        class="detail-value"
+                        v-html="detail"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script th:inline="javascript" type="text/javascript">
+    new Vue({
+      el: "#app",
+      data: function () {
+        return {
+          codeUrl: '',
+          userInfo: null,
+          canSeckill: false,
+          form: {
+            code: '',
+            uuid: '',
+            seckillProductId: ''
+          },
+          rules: {
+            code: [{ required: true, trigger: 'change', message: '验证码不能为空' }]
+          },
+          detail: [[${productDetail?.detail}]],
+          remainSeconds: 0,
+          seckillStatus: 0
+        };
+      },
+      created() {
+        // 获取验证码
+        this.getUserInfo()
+        this.getCode()
+        this.getSeconds()
+      },
+      methods: {
+        getSeconds() {
+          this.remainSeconds = [[${productDetail?.remainSeconds}]]
+          this.seckillStatus = [[${productDetail?.seckillStatus}]]
+          if(this.remainSeconds > 0) {
+            let timer = setInterval(() => {
+              this.remainSeconds = this.remainSeconds - 1
+              if(this.remainSeconds === 0) {
+                clearInterval(timer)
+                this.seckillStatus = 2
+                this.canSeckill = true
+              }
+            }, 1000);
+          } else {
+            this.canSeckill = false
+          }
+        },
+        getCode() {
+          axios.get("/code").then(res => {
+            const data = res.data
+            this.codeUrl = data.img
+            this.form.uuid = data.uuid
+            this.form.code = data.code
+          })
+        },
+        getUserInfo() {
+          axios.get("/getUserInfo", {headers: this.getHeaders()}).then(res => {
+            const data = res.data
+            this.userInfo = data
+          })
+        },
+        getResult() {
+          const that = this
+          axios.post("/getResult", this.form, {headers: this.getHeaders()}).then((res) => {
+            const data = res.data
+            if (data && data.id){
+                this.$message.info('恭喜你秒杀成功');
+                window.location.href = "/orderDetail/" + data.id;
+            } else {
+              setTimeout(function () {
+                that.getResult();
+              }, 200);
+            }
+          })
+        },
+        getHeaders() {
+          const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic@' + Cookies.get('SECKILL-TOKEN')
+          }
+          return headers;
+        },
+        onSubmit() {
+          this.form.seckillProductId =  [[${productDetail?.id}]]
+          axios.post("/doSeckillProduct", this.form, {headers: this.getHeaders()}).then((res) => {
+            const data = res.data
+            if(!data || (data.code === 0 && !data.message)) {
+             this.getResult();
+           } else {
+                if(data.code === 403) {
+                    window.location.href="/login";
+                } else {
+                    this.$message.error(data.message);
+                }
+          }
+        }).catch(error => {
+            if (error.response) {
+            const data = error.response.data
+            if(data.code === 403) {
+              window.location.href="/login";
+            } else {
+              this.$message.error(data.message);
+            }
+          } else {
+            this.$message.error(error.message);
+          }
+        });
+        }
+      }
+    });
+  </script>
+</html>
