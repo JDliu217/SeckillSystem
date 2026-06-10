@@ -26,6 +26,13 @@ seckill:
     host: http://127.0.0.1:8011
     createOrderUrl: /v1/web/trade/createForSeckill
     secretKey: seckill123
+  # 订单超时关单
+  # delayLevel 是 RocketMQ 固定的 18 个等级（1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h）
+  # 14 = 10 分钟，与 orderTimeoutSeconds 保持同一个口径
+  orderTimeoutTopic: seckill.order.timeout.topic
+  orderTimeoutGroup: seckill-order-timeout-group
+  orderTimeoutDelayLevel: 14
+  orderTimeoutSeconds: 600
 
 rocketmq:
   name-server: 127.0.0.1:9876

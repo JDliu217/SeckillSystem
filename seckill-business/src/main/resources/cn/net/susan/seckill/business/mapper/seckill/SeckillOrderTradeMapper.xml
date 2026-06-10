@@ -582,5 +582,27 @@
             #{id}
         </foreach>
     </select>
+    <!-- 关单：用 order_status 做 CAS，只有待支付(1)才关得动，重复消费只会命中一次 -->
+    <update id="closeTimeoutOrder" parameterType="Long">
+        UPDATE seckill_order_trade set order_status = 4, update_time = now(3)
+        WHERE id = #{id} AND order_status = 1
+    </update>
+
+    <!-- 支付回调：同样用 order_status 做 CAS，与关单互斥 -->
+    <update id="markOrderPaid" parameterType="Long">
+        UPDATE seckill_order_trade set order_status = 2, pay_status = 2, update_time = now(3)
+        WHERE id = #{id} AND order_status = 1
+    </update>
+
+    <!-- 扫表兜底：捞超时未支付的订单，交给同一套关单逻辑 -->
+    <select id="findTimeoutOrderIds" resultType="java.lang.Long">
+        SELECT id
+        FROM seckill_order_trade
+        WHERE order_status = 1
+          AND is_del = 0
+          AND order_time &lt; #{deadline}
+        ORDER BY order_time ASC
+        LIMIT #{limit}
+    </select>
 
 </mapper>

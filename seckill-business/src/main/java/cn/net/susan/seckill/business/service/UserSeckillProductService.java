@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -76,6 +77,15 @@ public class UserSeckillProductService {
 
     @Value("${seckill.seckillProductTopic:SECKILL_PRODUCT_TOPIC}")
     private String seckillProductTopic;
+
+    @Value("${seckill.orderTimeoutTopic:seckill.order.timeout.topic}")
+    private String orderTimeoutTopic;
+
+    /**
+     * RocketMQ 延迟等级，默认 14 对应 10 分钟
+     */
+    @Value("${seckill.orderTimeoutDelayLevel:14}")
+    private int orderTimeoutDelayLevel;
 
     /**
      * 用户秒杀商品方法
@@ -217,6 +227,29 @@ public class UserSeckillProductService {
 
         if (!redisUtil.set(userSeckillProductKey, seckillOrderTradeEntity.getId().toString())) {
             throw new BusinessException("创建秒杀订单失败");
+        }
+
+        // 订单号写成之后前端就能轮询到了，再投一条延迟消息，到期没支付就自动关单并回补库存
+        sendOrderTimeoutMessage(seckillOrderTradeEntity.getId(), seckillProductId);
+    }
+
+    /**
+     * 投递订单超时延迟消息
+     *
+     * <p>用同步发送，失败只记日志不抛：订单已经建好了，不能因为消息发不出去就让整条消费失败重投，
+     * 那样会把库存再扣一次。没投出去的由扫表任务兜底。</p>
+     *
+     * @param orderId          秒杀订单ID
+     * @param seckillProductId 秒杀商品ID
+     */
+    private void sendOrderTimeoutMessage(Long orderId, Long seckillProductId) {
+        try {
+            SeckillOrderTimeoutMessage message = new SeckillOrderTimeoutMessage(orderId, seckillProductId);
+            rocketMQTemplate.syncSend(orderTimeoutTopic,
+                    MessageBuilder.withPayload(message).build(), 3000L, orderTimeoutDelayLevel);
+            log.info("订单超时消息已投递，orderId={}, delayLevel={}", orderId, orderTimeoutDelayLevel);
+        } catch (Exception e) {
+            log.error("订单超时消息投递失败，等待扫表兜底，orderId={}", orderId, e);
         }
     }
 

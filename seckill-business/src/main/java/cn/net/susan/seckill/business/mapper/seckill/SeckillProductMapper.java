@@ -44,6 +44,17 @@ public interface SeckillProductMapper {
     int reduceWithHoldStock(@Param("id") Long id);
 
     /**
+     * 回补预扣库存（订单超时关单后调用）
+     *
+     * <p>只加 with_hold_quantity，不动 remain_quantity；上限由 SQL 条件兜住，
+     * 已回补到实剩数量时影响行数为 0，不会把预扣加超。</p>
+     *
+     * @param id 秒杀商品信息ID
+     * @return 结果
+     */
+    int restoreWithHoldStock(@Param("id") Long id);
+
+    /**
      * 批量删除秒杀商品
      *
      * @param ids    id集合

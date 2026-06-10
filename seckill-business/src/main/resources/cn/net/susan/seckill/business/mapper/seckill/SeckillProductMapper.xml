@@ -328,5 +328,10 @@
             #{id}
         </foreach>
     </select>
+    <!-- 回补预扣库存：只加预扣，上限用 remain_quantity 兜住，避免重复回补把预扣加超 -->
+    <update id="restoreWithHoldStock" parameterType="Long">
+        UPDATE seckill_product set with_hold_quantity = with_hold_quantity + 1
+        WHERE id = #{id} AND with_hold_quantity &lt; remain_quantity
+    </update>
 
 </mapper>

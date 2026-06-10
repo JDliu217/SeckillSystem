@@ -37,3 +37,12 @@ rocketmq:
   producer:
     group: seckill-group
     send-message-timeout: 10000
+
+seckill:
+  # 秒杀下单消息
+  seckillProductTopic: SECKILL_PRODUCT_TOPIC
+  seckillProductGroup: SECKILL_PRODUCT_GROUP
+  # 订单超时延迟消息（api 只负责投递，消费在 seckill-job）
+  orderTimeoutTopic: seckill.order.timeout.topic
+  orderTimeoutDelayLevel: 14
+  orderTimeoutSeconds: 600
