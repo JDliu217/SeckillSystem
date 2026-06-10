@@ -1,2 +1,6 @@
-# 第三方前端库，不计入语言统计
-seckill-api/src/main/resources/static/** linguist-vendored
+# 换行统一
+* text=auto
+
+# 语言统计：除 Java 外一律视为第三方代码
+* linguist-vendored
+*.java linguist-vendored=false
